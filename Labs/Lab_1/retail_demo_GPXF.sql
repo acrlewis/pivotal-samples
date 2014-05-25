@@ -8,26 +8,27 @@ DROP SCHEMA IF EXISTS retail_demo CASCADE;
 CREATE SCHEMA retail_demo;
 
 -- 1. HAWQ table; load via COPY in Lab #4
-CREATE TABLE retail_demo.categories_dim
+CREATE EXTERNAL TABLE retail_demo.categories_dim_pxf
 (
-    category_id integer NOT NULL,
-    category_name character varying(400) NOT NULL
+    category_id integer,
+    category_name character varying(400)
 )
-WITH (appendonly=true, compresstype=quicklz) DISTRIBUTED RANDOMLY;
+LOCATION ('pxf://pivhdsne:50070/retail_demo/categories_dim/categories_dim.tsv.gz?profile=HdfsTextSimple') 
+FORMAT 'TEXT' (DELIMITER = E'\t');
 
 -- 2. GPXF/HBase table; load data into HDFS, then use importtsv to bulk load HBase
-CREATE EXTERNAL TABLE retail_demo.customers_dim
+CREATE EXTERNAL TABLE retail_demo.customers_dim_pxf
 (
     customer_id TEXT,
     first_name TEXT,
     last_name TEXT,
     gender TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/customers_dim/customers_dim.tsv.gz?Fragmenter=HdfsDataFragmenter')
-FORMAT 'TEXT' (DELIMITER = E'\t');
+LOCATION ('pxf://pivhdsne:50070/retail_demo/customers_dim/customers_dim.tsv.gz?profile=HdfsTextSimple')
+FORMAT 'TEXT' (DELIMITER = E'\t');  
 
 -- 3. GPXF/HDFS table; load data into HDFS
-CREATE EXTERNAL TABLE retail_demo.order_lineitems
+CREATE  EXTERNAL TABLE retail_demo.order_lineitems_pxf
 (
     order_id TEXT,
     order_item_id TEXT,
@@ -62,11 +63,11 @@ CREATE EXTERNAL TABLE retail_demo.order_lineitems
     ordering_session_id TEXT,
     website_url TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/order_lineitems/order_lineitems.tsv.gz?Fragmenter=HdfsDataFragmenter')
+LOCATION ('pxf://pivhdsne:50070/retail_demo/order_lineitems/order_lineitems.tsv.gz?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER = E'\t');
 
 -- 4. GPXF/HDFS table; load data into HDFS
-CREATE EXTERNAL TABLE retail_demo.orders
+CREATE EXTERNAL TABLE retail_demo.orders_pxf
 (
     order_id TEXT,
     customer_id TEXT,
@@ -100,11 +101,11 @@ CREATE EXTERNAL TABLE retail_demo.orders
     ordering_session_id TEXT,
     website_url TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/orders/orders.tsv.gz?Fragmenter=HdfsDataFragmenter')
+LOCATION ('pxf://pivhdsne:50070/retail_demo/orders/orders.tsv.gz?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER = E'\t');
 
 -- 5. GPXF/HBase table; load data into HDFS, then use importtsv to bulk load HBase
-CREATE EXTERNAL TABLE retail_demo.customer_addresses_dim
+CREATE EXTERNAL TABLE retail_demo.customer_addresses_dim_pxf
 (
     customer_address_id TEXT,
     customer_id TEXT,
@@ -120,11 +121,11 @@ CREATE EXTERNAL TABLE retail_demo.customer_addresses_dim
     country TEXT,
     phone_number TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/customer_addresses_dim/customer_addresses_dim.tsv.gz?Fragmenter=HdfsDataFragmenter')
-FORMAT 'TEXT' (DELIMITER = E'\t');
+LOCATION ('pxf://pivhdsne:50070/retail_demo/customer_addresses_dim/customer_addresses_dim.tsv.gz?profile=HdfsTextSimple')
+FORMAT 'TEXT' (DELIMITER = E'\t');  
 
 -- 6. HAWQ table; load via COPY
-CREATE TABLE retail_demo.date_dim
+CREATE EXTERNAL TABLE retail_demo.date_dim_pxf
 (
     calendar_day date,
     reporting_year smallint,
@@ -133,35 +134,36 @@ CREATE TABLE retail_demo.date_dim
     reporting_week smallint,
     reporting_dow smallint
 )
-WITH (appendonly=true) DISTRIBUTED RANDOMLY;
+LOCATION ('pxf://pivhdsne:50070/retail_demo/date_dim/date_dim.tsv.gz?profile=HdfsTextSimple')
+FORMAT 'TEXT' (DELIMITER = E'\t');
 
 -- 7. GPXF/HBase table; load data into HDFS, then use importtsv to bulk load HBase
-CREATE EXTERNAL TABLE retail_demo.email_addresses_dim
+CREATE EXTERNAL TABLE retail_demo.email_addresses_dim_pxf
 (
     customer_id TEXT,
     email_address TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/email_addresses_dim/email_addresses_dim.tsv.gz?Fragmenter=HdfsDataFragmenter')
-FORMAT 'TEXT' (DELIMITER = E'\t');
+LOCATION ('pxf://pivhdsne:50070/retail_demo/email_addresses_dim/email_addresses_dim.tsv.gz?profile=HdfsTextSimple')
+FORMAT 'TEXT' (DELIMITER = E'\t');  
 
 -- 8. HAWQ table; load via COPY
-CREATE TABLE retail_demo.payment_methods
+CREATE EXTERNAL TABLE retail_demo.payment_methods_pxf
 (
     payment_method_id smallint,
     payment_method_code character varying(20)
 )
-WITH (appendonly=true, compresstype=quicklz) DISTRIBUTED RANDOMLY;
-ALTER TABLE retail_demo.payment_methods OWNER TO gpadmin;
+LOCATION ('pxf://pivhdsne:50070/retail_demo/payment_methods/payment_methods.tsv.gz?profile=HdfsTextSimple')
+FORMAT 'TEXT' (DELIMITER = E'\t'); 
 
 -- 9. GPXF/HBase table; load data into HDFS, then use importtsv to bulk load HBase
-CREATE EXTERNAL TABLE retail_demo.products_dim
+CREATE EXTERNAL TABLE retail_demo.products_dim_pxf
 (
     product_id TEXT,
     category_id TEXT,
     price TEXT,
     product_name TEXT
 )
-LOCATION ('gpxf://pivhdsne:50070/retail_demo/products_dim/products_dim.tsv.gz?Fragmenter=HdfsDataFragmenter')
+LOCATION ('pxf://pivhdsne:50070/retail_demo/products_dim/products_dim.tsv.gz?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER = E'\t');
 
 -- 10. HAWQ table, copy of order_lineitems, loaded via INSERT INTO ... SELECT ... FROM
